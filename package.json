@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/LuluBaroy/SoPekocko/issues"
   },
-  "homepage": "https://github.com/LuluBaroy/SoPekocko#readme"
+  "homepage": "https://github.com/LuluBaroy/SoPekocko#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
