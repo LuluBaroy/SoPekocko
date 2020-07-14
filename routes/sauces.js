@@ -1,17 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const sauceCtrl = require('../controllers/sauces');
+const auth = require('../middleware/auth');
 
-router.get('/:id', sauceCtrl.getOneSauce);
+router.get('/:id', auth,  sauceCtrl.getOneSauce);
 
-router.put('/:id', sauceCtrl.modifyOneSauce);
+router.put('/:id', auth, sauceCtrl.modifyOneSauce);
 
-router.post('/', sauceCtrl.createSauce);
+router.post('/', auth, sauceCtrl.createSauce);
 
-router.post('/:id/like', sauceCtrl.defineLikeStatus);
+router.post('/:id/like', auth, sauceCtrl.defineLikeStatus);
 
-router.delete('/:id', sauceCtrl.deleteOneSauce);
+router.delete('/:id', auth, sauceCtrl.deleteOneSauce);
 
-router.get('/', sauceCtrl.getAllSauces);
+router.get('/', auth, sauceCtrl.getAllSauces);
 
 module.exports = router;
