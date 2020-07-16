@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-mongoose.connect(`mongodb+srv://LuluBaroy:ririne@cluster0.pxgf7.mongodb.net/sopekocko?retryWrites=true&w=majority`,
+mongoose.connect(`mongodb+srv://LuluBaroy:2EzBrTK5x3S8ZfuA@cluster0.frf0n.mongodb.net/sopekocko?retryWrites=true&w=majority`,
 	{ useNewUrlParser: true,
 	useUnifiedTopology: true })
 	.then(() => console.log('Connexion à MongoDB réussie !'))
