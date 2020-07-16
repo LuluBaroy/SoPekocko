@@ -1,9 +1,13 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const bouncer = require('express-bouncer');
+const {validationResult} = require('express-validator');
 
 exports.signup = (req, res, next) => {
+	const errors = validationResult(req);
+	if(!errors.isEmpty()){
+		return res.status(422).json({ errors: errors.array() });
+	}
 	bcrypt.hash(req.body.password, 10)
 		.then(hash => {
 			const user = new User({
@@ -36,9 +40,10 @@ exports.login = (req, res, next) => {
 							{ expiresIn: '24h' }
 						)
 					});
-					bouncer.reset (req);
 				})
 				.catch(error => res.status(500).json({ error }));
+
 		})
 		.catch(error => res.status(500).json({ error }));
+
 };
