@@ -70,7 +70,7 @@ exports.modifyOneSauce = (req, res, next) => {
 			.catch(error => res.status(500).json({ error }))
 	}
 	Sauces.updateOne({ _id: req.params.id }, { ...sauceModified, _id: req.params.id })
-		.then(() => res.status(201).json({ message: 'Sauce modifiée !'}))
+		.then(() => res.status(200).json({ message: 'Sauce modifiée !'}))
 		.catch(error => res.status(400).json({ error }));
 };
 
