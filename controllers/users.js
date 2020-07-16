@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const bouncer = require('express-bouncer');
 
 exports.signup = (req, res, next) => {
 	bcrypt.hash(req.body.password, 10)
@@ -35,6 +36,7 @@ exports.login = (req, res, next) => {
 							{ expiresIn: '24h' }
 						)
 					});
+					bouncer.reset (req);
 				})
 				.catch(error => res.status(500).json({ error }));
 		})
