@@ -1,7 +1,35 @@
 const Sauces = require('../models/Sauces');
 const fs = require('fs');
+'use strict';
 
-exports.createSauce = (req, res, next) => {
+/**
+ *	@api {post} /api/sauces Create
+ * @apiName create
+ * @apiGroup Sauces
+ *
+ * @apiParam {String} name Sauce name
+ * @apiParam {String} manufacturer Sauce Manufacturer
+ * @apiParam {String} description Sauce description
+ * @apiParam {String} mainPepper Sauce main pepper
+ * @apiParam {String} imageUrl Sauce image
+ * @apiParam {Number} heat Sauce heat
+ *
+ * @apiSuccess {String} message Message for new sauce creating
+ *
+ * @apiSuccessExample Success-Response:
+ *
+ *HTTP1.1/ 201 Created
+ *{
+ *  "message":"Nouvelle Sauce enregistrée !"
+ *}
+ *
+ * @apiError Error
+ *
+ *HTTP1.1/  400 Unauthorized
+ *
+ **/
+
+exports.create = (req, res, next) => {
 	const sauceCreated = JSON.parse(req.body.sauce);
 	delete sauceCreated._id;
 	sauceCreated.likes = 0;
@@ -17,7 +45,40 @@ exports.createSauce = (req, res, next) => {
 		.catch(error => res.status(400).json({ error }));
 };
 
-exports.getOneSauce = (req, res, next) => {
+/**
+ *	@api {get} /api/sauces/:id Read one
+ * @apiName ReadOne
+ * @apiGroup Sauces
+ *
+ * @apiParam {String} id sauce ID
+ *
+ * @apiSuccess {String} sauce JSON containing sauce informations
+ *
+ * @apiSuccessExample Success-Response:
+ *
+ *HTTP1.1/ 200 OK
+ *{
+ *  "usersLiked":[],
+ *  "usersDisliked":[],
+ *  "_id":"5f13520d1917be88d87faa0c",
+ *  "name":"Harissa",
+ *  "manufacturer":"Heinz",
+ *  "description":"13",
+ *  "mainPepper":"no idea",
+ *  "heat":3,
+ *  "userId":"5f1352021917be88d87faa0b",
+ *  "likes":0,
+ *  "dislikes":0,
+ *  "imageUrl":"http://localhost:3000/images/2603250782.jpg",
+ *  "__v":0
+ *}
+ *
+ * @apiError Error
+ *
+ *HTTP1.1/  404 Not Found
+ *
+ **/
+exports.readOne = (req, res, next) => {
 	Sauces.findOne({_id: req.params.id})
 		.then((sauce) => {res.status(200).json(sauce)})
 		.catch((error) => {res.status(404).json({ error: error });
@@ -25,7 +86,28 @@ exports.getOneSauce = (req, res, next) => {
 	);
 };
 
-exports.defineLikeStatus = (req, res, next) => {
+/**
+ *	@api {post} /api/sauces/:id/like Like/Dislike
+ * @apiName like
+ * @apiGroup Sauces
+ *
+ * @apiParam {String} id sauce ID
+ *
+ * @apiSuccess {String} message Like or Dislike success message
+ *
+ * @apiSuccessExample Success-Response:
+ *
+ *HTTP1.1/ 200 OK
+ *{
+ * 'message': 'Like ajouté pour cette sauce !'
+ *}
+ *
+ * @apiError Error
+ *
+ *HTTP1.1/  400 Unauthorized
+ *
+ **/
+exports.like = (req, res, next) => {
 	if(req.body.like === 1){
 		Sauces.updateOne({_id: req.params.id}, {$inc: {likes: req.body.like++}, $push: {usersLiked: req.body.userId}})
 			.then(() => res.status(200).json({ message: 'Like ajouté pour cette sauce !'}))
@@ -51,7 +133,28 @@ exports.defineLikeStatus = (req, res, next) => {
 	}
 }
 
-exports.modifyOneSauce = (req, res, next) => {
+/**
+ *	@api {put} /api/sauces/:id Update
+ * @apiName update
+ * @apiGroup Sauces
+ *
+ * @apiParam {String} id sauce ID
+ *
+ * @apiSuccess {String} message Message Sauce modified
+ *
+ * @apiSuccessExample Success-Response:
+ *
+ *HTTP1.1/ 200 OK
+ *{
+ * message: 'Sauce modifiée !'
+ *}
+ *
+ * @apiError Error
+ *
+ *HTTP1.1/  400 Unauthorized
+ *
+ **/
+exports.update = (req, res, next) => {
 	const sauceModified = req.file ?
 		{
 			...JSON.parse(req.body.sauce),
@@ -63,7 +166,7 @@ exports.modifyOneSauce = (req, res, next) => {
 				const filename = sauce.imageUrl.split('/images/')[1];
 				fs.unlink(`images/${filename}`, (error) => {
 					if( error ){
-						console.log("Error : Deleting failed !");
+						console.log(error);
 					}
 				})
 			})
@@ -74,7 +177,28 @@ exports.modifyOneSauce = (req, res, next) => {
 		.catch(error => res.status(400).json({ error }));
 };
 
-exports.deleteOneSauce = (req, res, next) => {
+/**
+ *	@api {delete} /api/sauces/:id Delete
+ * @apiName delete
+ * @apiGroup Sauces
+ *
+ * @apiParam {String} id sauce ID
+ *
+ * @apiSuccess {String} message Message Sauce deleted
+ *
+ * @apiSuccessExample Success-Response:
+ *
+ *HTTP1.1/ 200 OK
+ *{
+ * message: 'Sauce supprimée !'
+ *}
+ *
+ * @apiError Error
+ *
+ *HTTP1.1/  400 Unauthorized
+ *
+ **/
+exports.delete = (req, res, next) => {
 	Sauces.findOne({ _id: req.params.id})
 		.then(sauce => {
 			const filename = sauce.imageUrl.split('/images/')[1];
@@ -87,7 +211,43 @@ exports.deleteOneSauce = (req, res, next) => {
 		.catch(error => res.status(400).json({ error }));
 };
 
-exports.getAllSauces = (req, res, next) => {
+/**
+ *	@api {get} /api/sauces Read all
+ * @apiName readAll
+ * @apiGroup Sauces
+ *
+ * @apiSuccess {String} sauces JSON containing all sauces
+ *
+ * @apiSuccessExample Success-Response:
+ *
+ *HTTP1.1/ 200 OK
+ *
+ * [
+    {
+        "usersLiked": [],
+        "usersDisliked": [
+            "5f1352021917be88d87faa0b"
+        ],
+        "_id": "5f135b41f186be8dc4c5fa7f",
+        "name": "Harissa",
+        "manufacturer": "Heinz",
+        "description": "123",
+        "mainPepper": "no idea",
+        "heat": 3,
+        "userId": "5f1352021917be88d87faa0b",
+        "likes": 0,
+        "dislikes": 1,
+        "imageUrl": "http://localhost:3000/images/3982395801.jpg",
+        "__v": 0
+    }
+]
+ *
+ * @apiError Error
+ *
+ *HTTP1.1/  400 Unauthorized
+ *
+ **/
+exports.readAll = (req, res, next) => {
 	Sauces.find()
 		.then(sauces => res.status(200).json(sauces))
 		.catch(error => res.status(400).json({error}));

@@ -1,4 +1,6 @@
 const multer = require('multer');
+const fs = require('fs');
+'use strict';
 
 const MIME_TYPES = {
 	'image/jpg': 'jpg',
@@ -11,9 +13,9 @@ const storage = multer.diskStorage({
 		callback(null, 'images');
 	},
 	filename: (req, file, callback) => {
-		const name = file.originalname.split(' ').join('_');
+		const random = (Math.floor(Math.random()*Math.pow(10, 10))).toString();
 		const extension = MIME_TYPES[file.mimetype];
-		callback(null, name + Date.now() + '.' + extension);
+		callback(null, random + '.' + extension);
 	}
 });
 
