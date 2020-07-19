@@ -28,6 +28,7 @@
     "mongoose": "^5.9.22",
     "mongoose-unique-validator": "^2.0.3",
     "multer": "^1.4.2",
+    "node-shield": "^0.1.11",
     "sha1": "^1.1.1",
     "snyk": "^1.362.0"
   }

@@ -20,10 +20,10 @@ const fs = require('fs');
  *
  *HTTP1.1/ 201 Created
  *{
- *  "message":"Nouvelle Sauce enregistrée !"
+ *  "message":"New Sauce Registered !"
  *}
  *
- * @apiError Error
+ * @apiErrorExample {json} Error Response if user isn't authenticated
  *
  *HTTP1.1/  400 Unauthorized
  *
@@ -41,7 +41,7 @@ exports.create = (req, res, next) => {
 		imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
 	});
 	sauce.save()
-		.then(() => res.status(201).json({ message: 'Nouvelle Sauce enregistrée !'}))
+		.then(() => res.status(201).json({ message: 'New Sauce Registered !'}))
 		.catch(error => res.status(400).json({ error }));
 };
 
@@ -52,7 +52,7 @@ exports.create = (req, res, next) => {
  *
  * @apiParam {String} id sauce ID
  *
- * @apiSuccess {String} sauce JSON containing sauce informations
+ * @apiSuccess {String} sauce JSON containing sauce information
  *
  * @apiSuccessExample Success-Response:
  *
@@ -73,7 +73,7 @@ exports.create = (req, res, next) => {
  *  "__v":0
  *}
  *
- * @apiError Error
+ * @apiErrorExample {json} Error Response if sauce doesn't exist
  *
  *HTTP1.1/  404 Not Found
  *
@@ -99,10 +99,10 @@ exports.readOne = (req, res, next) => {
  *
  *HTTP1.1/ 200 OK
  *{
- * 'message': 'Like ajouté pour cette sauce !'
+ * 'message': 'Like added for that sauce !'
  *}
  *
- * @apiError Error
+ * @apiErrorExample {json} Error Response if user isn't authenticated
  *
  *HTTP1.1/  400 Unauthorized
  *
@@ -110,22 +110,22 @@ exports.readOne = (req, res, next) => {
 exports.like = (req, res, next) => {
 	if(req.body.like === 1){
 		Sauces.updateOne({_id: req.params.id}, {$inc: {likes: req.body.like++}, $push: {usersLiked: req.body.userId}})
-			.then(() => res.status(200).json({ message: 'Like ajouté pour cette sauce !'}))
+			.then(() => res.status(200).json({ message: 'Like added for that sauce !'}))
 			.catch(error => res.status(400).json({ error }))
 	} else if( req.body.like === -1){
 		Sauces.updateOne({_id: req.params.id}, {$inc: {dislikes: (req.body.like++)*-1}, $push: {usersDisliked: req.body.userId}})
-			.then(() => res.status(200).json({ message: 'Dislike ajouté pour cette sauce !'}))
+			.then(() => res.status(200).json({ message: 'Dislike added for that sauce !'}))
 			.catch(error => res.status(400).json({ error }))
 	} else {
 		Sauces.findOne({_id: req.params.id})
 			.then(sauce => {
 				if(sauce.usersLiked.includes(req.body.userId)){
 					Sauces.updateOne({_id: req.params.id}, {$pull: {usersLiked: req.body.userId}, $inc: {likes: -1}})
-						.then(() => res.status(200).json({ message: 'Votre Like a été retiré pour cette sauce'}))
+						.then(() => res.status(200).json({ message: 'Your Like has been removed for that sauce !'}))
 						.catch(error => res.status(400).json({ error }))
 				} else if(sauce.usersDisliked.includes(req.body.userId)){
 					Sauces.updateOne({_id: req.params.id}, {$pull: {usersDisliked: req.body.userId}, $inc: {dislikes: -1}})
-						.then(() => res.status(200).json({ message: 'Votre Dislike a été retiré pour cette sauce'}))
+						.then(() => res.status(200).json({ message: 'Your Dislike has been removed for that sauce !'}))
 						.catch(error => res.status(400).json({ error }))
 				}
 			})
@@ -146,10 +146,10 @@ exports.like = (req, res, next) => {
  *
  *HTTP1.1/ 200 OK
  *{
- * message: 'Sauce modifiée !'
+ * message: 'Sauce modified !'
  *}
  *
- * @apiError Error
+ * @apiErrorExample {json} Error Response if user isn't authenticated
  *
  *HTTP1.1/  400 Unauthorized
  *
@@ -173,7 +173,7 @@ exports.update = (req, res, next) => {
 			.catch(error => res.status(500).json({ error }))
 	}
 	Sauces.updateOne({ _id: req.params.id }, { ...sauceModified, _id: req.params.id })
-		.then(() => res.status(200).json({ message: 'Sauce modifiée !'}))
+		.then(() => res.status(200).json({ message: 'Sauce modified !'}))
 		.catch(error => res.status(400).json({ error }));
 };
 
@@ -190,10 +190,10 @@ exports.update = (req, res, next) => {
  *
  *HTTP1.1/ 200 OK
  *{
- * message: 'Sauce supprimée !'
+ * message: 'Sauce deleted !'
  *}
  *
- * @apiError Error
+ * @apiErrorExample {json} Error Response if user isn't authenticated
  *
  *HTTP1.1/  400 Unauthorized
  *
@@ -204,7 +204,7 @@ exports.delete = (req, res, next) => {
 			const filename = sauce.imageUrl.split('/images/')[1];
 			fs.unlink(`images/${filename}`, () => {
 				Sauces.deleteOne({ _id: req.params.id })
-					.then(() => res.status(200).json({ message: 'Sauce supprimée !'}))
+					.then(() => res.status(200).json({ message: 'Sauce deleted !'}))
 					.catch(error => res.status(400).json({ error }));
 			})
 		})
@@ -242,7 +242,7 @@ exports.delete = (req, res, next) => {
     }
 ]
  *
- * @apiError Error
+ * @apiErrorExample {json} Error Response if user isn't authenticated
  *
  *HTTP1.1/  400 Unauthorized
  *
