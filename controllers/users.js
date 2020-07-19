@@ -7,7 +7,7 @@ const bouncer = require('express-bouncer')(0,0);
 'use strict';
 
 /**
- *	@api {post} /api/auth/signup Sign up
+ * @api {post} /api/auth/signup Sign up
  * @apiName signup
  * @apiGroup User
  *
@@ -20,11 +20,11 @@ const bouncer = require('express-bouncer')(0,0);
  *
  *HTTP1.1/ 201 Created
  *{
- *  "message": "Utilisateur créé !"
+ *  "message": "New user has been created !"
  *}
  *
  * @apiError Error
- * @apiErrorExample Error-Response:
+ * @apiErrorExample {json} Error Response if user's trying to sign up with wrong parameters
  *
  *HTTP1.1/  422 Unprocessable Entity
  *{
@@ -32,7 +32,7 @@ const bouncer = require('express-bouncer')(0,0);
  *  [
  *   {
  *	"value": "12345",
- *	"msg": "Email et / ou mot de passe incorrect. Merci de renseigner un mail valide et / ou un mot de passe d'au moins 8 caractères",
+ *	"msg": "Email and / or password incorrect. Please try with a valid mail and / or password with at least 8 chars",
  *	"param": "password",
  *	"location": "body"
  *   }
@@ -52,7 +52,7 @@ exports.signup = (req, res, next) => {
 				password: hash
 			});
 			user.save()
-				.then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
+				.then(() => res.status(201).json({ message: 'New user has been created' }))
 				.catch(error => res.status(400).json({ error }));
 		})
 		.catch(error => res.status(500).json({ error }));
@@ -79,10 +79,10 @@ exports.signup = (req, res, next) => {
  *
  * @apiError Error
  *
- * @apiErrorExample Error-Response:
+ * @apiErrorExample {json} Error Response if user can't be authenticated
  *HTTP1.1/  401 Unauthorized
  *{
- *  "error": "Mot de passe incorrect !"
+ *  "error": "Wrong password !"
  *}
  *
  */
@@ -91,13 +91,13 @@ exports.login = (req, res, next) => {
 	User.findOne({ email: sha1(req.body.email) })
 		.then(user => {
 			if (!user) {
-				return res.status(401).json({ error: 'Utilisateur non trouvé !' });
+				return res.status(401).json({ error: 'User not found !' });
 			}
 			bouncer.reset(req);
 			bcrypt.compare(req.body.password, user.password)
 				.then(valid => {
 					if (!valid) {
-						return res.status(401).json({ error: 'Mot de passe incorrect !' });
+						return res.status(401).json({ error: 'Wrong password !' });
 					}
 					bouncer.reset(req);
 					res.status(200).json({

@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const sauceRoutes = require('./routes/sauces');
 const userRoutes = require('./routes/users');
 const path = require('path');
+const { expressShield } = require('node-shield');
 
 mongoose.connect(`mongodb+srv://${process.env.ID}:${process.env.MDP}@${process.env.CLUSTER}.frf0n.mongodb.net/${process.env.COLLEC}?retryWrites=true&w=majority`,
 	{ useNewUrlParser: true,
@@ -21,7 +22,14 @@ app.use((req, res, next) => {
 });
 
 app.use(bodyParser.json());
+app.use(expressShield({
+	errorHandler: (shieldError, req, res, next) => {
+		console.error(shieldError);
+		res.sendStatus(400);
+	},
+}));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use('/api/sauces', sauceRoutes);
 app.use('/api/auth', userRoutes);
+
 module.exports = app;
