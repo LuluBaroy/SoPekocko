@@ -1,5 +1,8 @@
+'use strict';
 const http = require('http');
 const app = require('./app');
+/*const tls = require('tls');
+const fs = require('fs');*/
 
 const normalizePort = val => {
 	const port = parseInt(val, 10);
@@ -34,6 +37,13 @@ const errorHandler = error => {
 			throw error;
 	}
 };
+
+/*const options = {
+	key: fs.readFileSync('private-key.pem'),
+	cert: fs.readFileSync('public-cert.pem')
+};
+
+const server = tls.createServer(options, app)*/
 
 const server = http.createServer(app);
 
