@@ -26,8 +26,8 @@ app.use(expressShield({
 		res.sendStatus(400);
 	}
 }));
-
 app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use('/files', express.static(path.join(__dirname, 'files')));
 app.use('/api/sauces', sauceRoutes);
 app.use('/api/auth', userRoutes);
 
