@@ -1,11 +1,12 @@
 require('dotenv').config();
+'use strict';
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const { expressShield } = require('node-shield');
 const helmet = require('helmet');
-const cors = require('cors');
 const sauceRoutes = require('./routes/sauces');
 const userRoutes = require('./routes/users');
 const path = require('path');

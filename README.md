@@ -18,10 +18,13 @@ You will need to have :
 Clone this repository.
 
 - Run `npm install` 
+- Create a directory named `images` in project root
 - Get the `.env.sample` file and rename it as `.env` 
-- Fill in the different fields using your own MongoDB account information
+- Fill in the different fields using your own MongoDB account information and choose a Private Key for the JWT Token
 - Run `node server`, the server should 
 run on `localhost` with default port `3000` and you should read `Listening on port 3000` and `Connexion à MongoDB réussie` in the console
+
+( / ! \ If you want to use the route `export` in `controllers/users.js`, please create a directory named `files` in project root)
 
 
 ## *Author*

@@ -1,4 +1,6 @@
+require('dotenv').config();
 const User = require('../models/User');
+const Sauce = require('../models/Sauces');
 const Report = require('../models/Reports');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -57,10 +59,10 @@ exports.signup = (req, res, next) => {
 			});
 			user.save()
 				.then(() => res.status(201).json({ message: 'New user has been created' }))
-				.catch(error => res.status(400).json({ error }));
+				.catch(error => {logger.info(`Couldn't save user in DB`); res.status(400).json({ error })});
 			logger.info('New user has been created');
 		})
-		.catch(error => res.status(500).json({ error }));
+		.catch(error => {logger.info(`Couldn't register new user`); res.status(500).json({ error })});
 };
 
 /**
@@ -108,19 +110,20 @@ exports.login = (req, res, next) => {
 					}
 					bouncer.reset(req);
 					logger.info('Registered user connected');
+
 					res.status(200).json({
 						userId: user._id,
 						token: jwt.sign(
 							{ userId: user._id },
-							'RANDOM_TOKEN_SECRET',
+							`${process.env.PRIVATEKEY}`,
 							{ expiresIn: '24h' }
 						)
 					});
 
 				})
-				.catch(error => res.status(500).json({ error }));
+				.catch((error) => {logger.info(`${req.params.id}: Couldn't connect a user on login function`); res.status(500).json({ error })});
 		})
-		.catch(error => res.status(500).json({ error }));
+		.catch(error => {logger.info(`${req.params.id}: Couldn't connect a user on login function`); res.status(500).json({ error })});
 };
 
 /**
@@ -156,11 +159,16 @@ exports.login = (req, res, next) => {
 exports.readOne = (req, res, next) => {
 	User.findOne({_id: req.params.id})
 		.then((user) => {
-			logger.info(`${req.params.id}: User asked for his information`)
-			res.status(200).json(user)
+			Sauce.find({userId: req.params.id})
+				.then(sauce => {
+					logger.info(`${req.params.id}: User asked for his information`)
+					res.status(200).json({user, sauce})
+				})
 		})
-		.catch((error) => res.status(404).json({error: error}));
-
+		.catch((error) => {
+			logger.info(`${req.params.id}: Couldn't find user information`);
+			res.status(404).json({error: error})
+		});
 }
 
 /**
@@ -187,7 +195,8 @@ exports.readOne = (req, res, next) => {
  *
  */
 exports.update = (req, res, next) => {
-	if(req.body.email){
+
+	if(req.body.email && !req.body.password){
 		 const userModified = {
 		...req.body.user,
 			email: sha1(req.body.email)
@@ -197,8 +206,9 @@ exports.update = (req, res, next) => {
 				logger.info(`${req.params.id}: User modified his email`)
 				res.status(200).json({ message: 'User modified !'})
 			})
-			.catch(error => res.status(400).json({ error }));
-	} else if(req.body.password){
+			.catch(error => {logger.info(`${req.params.id}: Couldn't update user email`); res.status(400).json({ error })});
+
+	} else if(req.body.password && !req.body.email){
 		const password = req.body.password;
 		bcrypt.hash(password, 10)
 			.then(hash => {
@@ -211,9 +221,25 @@ exports.update = (req, res, next) => {
 						logger.info(`${req.params.id}: User modified his password`)
 						res.status(200).json({ message: 'User modified !' })
 					})
-					.catch(error => res.status(400).json({ error }));
+					.catch(error => {logger.info(`${req.params.id}: Couldn't update user password`); res.status(400).json({ error })});
 				})
-			.catch(error => res.status(500).json({ error }))
+			.catch(error => {logger.info(`${req.params.id}: Couldn't hash user password`); res.status(500).json({ error })});
+
+	} else {
+		const password = req.body.password;
+		bcrypt.hash(password, 10)
+			.then(hash => {
+				const userModified = {
+					email: sha1(req.body.email),
+					password: hash
+				}
+				User.updateOne({ _id: req.params.id }, {...userModified, _id: req.params.id })
+					.then(() => {
+						logger.info(`${req.params.id}: User modified his information`)
+						res.status(200).json({ message: 'User modified !' })
+					})
+					.catch(error => {logger.info(`${req.params.id}: Couldn't update user info`); res.status(400).json({ error })});
+			}).catch(error => {logger.info(`${req.params.id}: Couldn't hash user password`); res.status(400).json({ error })});
 	}
 }
 
@@ -240,12 +266,28 @@ exports.update = (req, res, next) => {
  *
  */
 exports.delete = (req, res, next) => {
-	User.deleteOne({ _id: req.params.id })
-		.then(() => {
-			logger.info(`${req.params.id}: User deleted his account`)
-			res.status(200).json({ message: 'User deleted !'})
+	Sauce.find({ userId: req.params.id})
+		.then(sauce => {
+			let filenames = [];
+			for(let i in sauce){
+				filenames.push(sauce[i].imageUrl.split('/images/')[1]);
+				fs.unlink(`images/${filenames[i]}`, (err) => {
+					Sauce.deleteOne(sauce[i])
+						.then(() => {res.json("User sauce deleted")})
+						.catch(error => res.status(400).json({error}));
+				})
+			}
+			User.deleteOne({_id: req.params.id})
+				.then(() => {
+					logger.info(`${req.params.id}: User deleted his account`)
+					res.status(200).json({message: 'User deleted !'})
+				})
+				.catch(error => {
+					logger.info(`${req.params.id}: Couldn't delete user`);
+					res.status(400).json({error})
+				});
 		})
-		.catch(error => res.status(400).json({ error }));
+		.catch(error => {logger.info(`${req.params.id}: Couldn't delete user's sauce`); res.status(400).json({ error })});
 }
 
 /**
@@ -263,33 +305,36 @@ exports.delete = (req, res, next) => {
  *HTTP1.1/  404 Not Found
  *
  */
-/*
-* 	A REVOIR
-*/
 exports.export = (req, res, next) => {
-	fs.stat('./files/userInfo.txt', (err) => {
-		if(!err){
-			fs.unlink('./files/userInfo.txt', err => {
-				if(err){
-					throw err;
-				}
-				console.log('File deleted !')
-			})
-		}
-	})
+	logger.info(`${req.params.id}: User asked for downloadable file containing his information`)
 	User.findOne({_id: req.params.id})
 		.then(user => {
-			fs.writeFile('./files/userInfo.txt', user, function(err){
-				if(err){
-					throw err;
-				}
-				console.log('File Created');
-				res.setHeader('Content-type', 'text/plain');
-				res.download('./files/userInfo.txt', (err) => {if(err){throw err}})
-			})
-			logger.info(`${req.params.id}: User asked for downloadable file containing his information`)
+			Sauce.find({userId: req.params.id})
+				.then((sauce) => {
+					fs.writeFile('./files/userInfo.txt', user + sauce,  function(err){
+						if(err){
+							console.log('File created !');
+							logger.info(`${req.params.id}: Couldn't write user information file`);
+							throw err;
+						}
+						res.setHeader('Content-type', 'text/plain');
+						res.download('./files/userInfo.txt', (err) => {if(err){throw err}})
+						fs.stat('./files/userInfo.txt', (err) => {
+							if(!err){
+								fs.unlink('./files/userInfo.txt', err => {
+									if(err){
+										logger.info(`${req.params.id}: Couldn't delete user information file`);
+										throw err;
+									}
+									console.log('File Deleted !');
+								})
+							}
+						})
+					})
+				})
+				.catch((error) => {logger.info(`${req.params.id}: Couldn't get user sauce information`); res.status(404).json({error})});
 		})
-		.catch((error) => res.status(404).json({error}));
+		.catch((error) => {logger.info(`${req.params.id}: Couldn't get user information`); res.status(404).json({error})});
 }
 
 /**
@@ -337,7 +382,7 @@ exports.report = (req, res, next) => {
 					logger.warn(`${req.params.id}: User sent a new report about a ${req.body.type} in item ${req.body.itemId}`)
 					res.status(202).json({ message: 'New report has been created, our team will examinate it as soon as possible !' })
 				})
-				.catch((err) => res.status(400).json({ err }))
+				.catch((err) => {logger.info(`${req.params.id}: Couldn't save user report`); res.status(400).json({ err })})
 		})
-		.catch(err => res.status(400).json({ err }))
+		.catch(err => {logger.info(`${req.params.id}: Couldn't research report`); res.status(400).json({ err })})
 }

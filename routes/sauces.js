@@ -3,7 +3,6 @@ const router = express.Router();
 const sauceCtrl = require('../controllers/sauces');
 const auth = require('../middleware/auth');
 const multer = require('../middleware/multer-config');
-const log = require('../middleware/winston');
 'use strict';
 
 router.get('/:id', auth,  sauceCtrl.readOne);
