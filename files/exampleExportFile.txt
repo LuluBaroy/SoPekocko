@@ -1,0 +1,9 @@
+Your information :
+ {
+  _id: 5f2d13f47f5d757e20cfa43b,
+  email: '31719b7a182ac17d7c27afd3ebf30e288182cc4e',
+  password: '$2a$10$qwYQ24BA6KS5O840leeS6e82g5SScprbuWYVzAdd5/DKHgmVpomPG',
+  __v: 0
+}
+Sauce you've created :
+ You haven't create any sauce
