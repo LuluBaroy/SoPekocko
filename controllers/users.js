@@ -268,14 +268,9 @@ exports.update = (req, res, next) => {
 exports.delete = (req, res, next) => {
 	Sauce.find({ userId: req.params.id})
 		.then(sauce => {
-			let filenames = [];
 			for(let i in sauce){
-				filenames.push(sauce[i].imageUrl.split('/images/')[1]);
-				fs.unlink(`images/${filenames[i]}`, (err) => {
-					Sauce.deleteOne(sauce[i])
-						.then(() => {res.json("User sauce deleted")})
-						.catch(error => res.status(400).json({error}));
-				})
+				Sauce.updateOne(sauce[i], {userId: '5f2d13f47f5d757e20cfa43b'})
+					.catch(error => {logger.info(`Couldn't update sauce before deleting user`); res.status(400).json({ error })});
 			}
 			User.deleteOne({_id: req.params.id})
 				.then(() => {
@@ -287,7 +282,7 @@ exports.delete = (req, res, next) => {
 					res.status(400).json({error})
 				});
 		})
-		.catch(error => {logger.info(`${req.params.id}: Couldn't delete user's sauce`); res.status(400).json({ error })});
+		.catch(error => {logger.info(`${req.params.id}: Couldn't find user's sauce`); res.status(404).json({ error })});
 }
 
 /**
@@ -311,26 +306,43 @@ exports.export = (req, res, next) => {
 		.then(user => {
 			Sauce.find({userId: req.params.id})
 				.then((sauce) => {
-					fs.writeFile('./files/userInfo.txt', user + sauce,  function(err){
-						if(err){
-							console.log('File created !');
-							logger.info(`${req.params.id}: Couldn't write user information file`);
-							throw err;
-						}
-						res.setHeader('Content-type', 'text/plain');
-						res.download('./files/userInfo.txt', (err) => {if(err){throw err}})
-						fs.stat('./files/userInfo.txt', (err) => {
-							if(!err){
-								fs.unlink('./files/userInfo.txt', err => {
-									if(err){
-										logger.info(`${req.params.id}: Couldn't delete user information file`);
-										throw err;
-									}
-									console.log('File Deleted !');
-								})
-							}
+					if(sauce.length === 0){
+						sauce = `You haven't create any sauce`
+					}
+					function createFile(){
+						return new Promise(function (resolve, reject){
+							fs.writeFile(`./files/${req.params.id}.txt`, `Your information :\n ${user} \nSauce you've created : \n ${sauce}`,  function(err){
+								if(err){
+									logger.info(`${req.params.id}: Couldn't write user information file`);
+									reject(err);
+								}
+								res.setHeader('Content-type', 'text/plain');
+								res.download(`./files/${req.params.id}.txt`, (err) => {if(err){throw err}})
+								resolve();
+							})
 						})
-					})
+					}
+					function deleteFile(){
+						return new Promise(function (resolve, reject){
+							fs.stat(`./files/${req.params.id}.txt`, (err) => {
+								if(!err){
+									fs.unlink(`./files/${req.params.id}.txt`, err => {
+										if(err){
+											logger.info(`${req.params.id}: Couldn't delete user information file`);
+											reject(err);
+										}
+										resolve();
+									})
+								}
+							})
+						})
+					}
+					createFile()
+						.then(() => {
+							deleteFile()
+								.catch(error => res.status(500).json(error))
+						})
+						.catch(error => res.status(500).json(error))
 				})
 				.catch((error) => {logger.info(`${req.params.id}: Couldn't get user sauce information`); res.status(404).json({error})});
 		})
@@ -346,18 +358,18 @@ exports.export = (req, res, next) => {
  * @apiParam {String} ItemId
  * @apiParam {String} type
  *
- * @apiSuccess {String} message Message New report has been created, our team will examinate it as soon as possible !
+ * @apiSuccess {String} message Message New report has been created, our team will examine it as soon as possible !
  *
  * @apiSuccessExample Success-Response:
  *
  *HTTP1.1/ 202 Accepted
  *{
-    "message": "New report has been created, our team will examinate it as soon as possible !"
+    "message": "New report has been created, our team will examine it as soon as possible !"
 }
  *
  * @apiError Error
  *
- * @apiErrorExample {json} Error Response if itemId has alrealdy been reported
+ * @apiErrorExample {json} Error Response if itemId has already been reported
  *HTTP1.1/  401 Unauthorized
  * {
  *     "error": "A report has already been sent for this item !"
@@ -380,7 +392,7 @@ exports.report = (req, res, next) => {
 			report.save()
 				.then(() => {
 					logger.warn(`${req.params.id}: User sent a new report about a ${req.body.type} in item ${req.body.itemId}`)
-					res.status(202).json({ message: 'New report has been created, our team will examinate it as soon as possible !' })
+					res.status(202).json({ message: 'New report has been created, our team will examine it as soon as possible !' })
 				})
 				.catch((err) => {logger.info(`${req.params.id}: Couldn't save user report`); res.status(400).json({ err })})
 		})
