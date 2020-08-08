@@ -3,7 +3,7 @@
 
 ## *API Documentation*
 Find the API documentation at this address: 
-**https://lulubaroy.github.io/So_Pekocko_Documentation/**
+**https://lulubaroy.github.io/Piquante_Documentation/**
 
 ## *Environment*
 This API has been developed with [NodeJS](https://nodejs.org/en/), [Express](https://www.npmjs.com/package/express) v4.17.1 and [MongoDB](https://www.mongodb.com/cloud/atlas)
