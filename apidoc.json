@@ -1,8 +1,8 @@
 {
-  "name": "API So Pekocko",
+  "name": "API Piquante - So Pekocko",
   "version": "0.1.0",
   "description": "Projet 6 - OpenClassRooms - Lucie BAROILLER",
-  "title": "So Pekocko",
+  "title": "Piquante",
   "order": [
     "User",
     "Sauces"
