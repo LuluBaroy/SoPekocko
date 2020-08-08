@@ -1,5 +1,6 @@
 const Sauces = require('../models/Sauces');
 const fs = require('fs');
+const hateoas = require('../middleware/hateoas')
 'use strict';
 
 /**
@@ -57,21 +58,47 @@ exports.create = (req, res, next) => {
  * @apiSuccessExample Success-Response:
  *
  *HTTP1.1/ 200 OK
- *{
- *  "usersLiked":[],
- *  "usersDisliked":[],
- *  "_id":"5f13520d1917be88d87faa0c",
- *  "name":"Harissa",
- *  "manufacturer":"Heinz",
- *  "description":"13",
- *  "mainPepper":"no idea",
- *  "heat":3,
- *  "userId":"5f1352021917be88d87faa0b",
- *  "likes":0,
- *  "dislikes":0,
- *  "imageUrl":"http://localhost:3000/images/2603250782.jpg",
- *  "__v":0
- *}
+{
+    "usersLiked": [],
+    "usersDisliked": [],
+    "_id": "5f2ea4c756e1e0f4701fb238",
+    "name": "Mayo",
+    "manufacturer": "Heinz",
+    "description": "123",
+    "mainPepper": "none",
+    "heat": 1,
+    "userId": "5f2d13f47f5d757e20cfa43b",
+    "likes": 0,
+    "dislikes": 0,
+    "imageUrl": "http://localhost:3000/images/5746504216.png",
+    "__v": 0,
+    "_links": {
+        "self": {
+            "method": "GET",
+            "href": "http://localhost:3000/api/sauces"
+        },
+        "create": {
+            "method": "POST",
+            "href": "http://localhost:3000/api/sauces"
+        },
+        "update": {
+            "method": "PUT",
+            "href": "http://localhost:3000/api/sauces/5f2ea4c756e1e0f4701fb238"
+        },
+        "delete": {
+            "method": "DELETE",
+            "href": "http://localhost:3000/api/sauces/5f2ea4c756e1e0f4701fb238"
+        },
+        "like": {
+            "method": "POST",
+            "href": "http://localhost:3000/api/sauces/5f2ea4c756e1e0f4701fb238/like"
+        },
+        "list": {
+            "method": "GET",
+            "href": "http://localhost:3000/api/sauces"
+        }
+    }
+}
  *
  * @apiErrorExample {json} Error Response if sauce doesn't exist
  *
@@ -80,7 +107,9 @@ exports.create = (req, res, next) => {
  **/
 exports.readOne = (req, res, next) => {
 	Sauces.findOne({_id: req.params.id})
-		.then((sauce) => {res.status(200).json(sauce)})
+		.then((oneSauce) => {
+			hateoas(req, res, oneSauce, 'api/sauces')
+		})
 		.catch((error) => {res.status(404).json({ error: error });
 		}
 	);
@@ -222,23 +251,47 @@ exports.delete = (req, res, next) => {
  *
  *HTTP1.1/ 200 OK
  *
- * [
+[
     {
         "usersLiked": [],
-        "usersDisliked": [
-            "5f1352021917be88d87faa0b"
-        ],
-        "_id": "5f135b41f186be8dc4c5fa7f",
-        "name": "Harissa",
+        "usersDisliked": [],
+        "_id": "5f2ea4c756e1e0f4701fb238",
+        "name": "Mayo",
         "manufacturer": "Heinz",
         "description": "123",
-        "mainPepper": "no idea",
-        "heat": 3,
-        "userId": "5f1352021917be88d87faa0b",
+        "mainPepper": "none",
+        "heat": 1,
+        "userId": "5f2d13f47f5d757e20cfa43b",
         "likes": 0,
-        "dislikes": 1,
-        "imageUrl": "http://localhost:3000/images/3982395801.jpg",
-        "__v": 0
+        "dislikes": 0,
+        "imageUrl": "http://localhost:3000/images/5746504216.png",
+        "__v": 0,
+        "_links": {
+            "self": {
+                "method": "GET",
+                "href": "http://localhost:3000/api/sauces"
+            },
+            "create": {
+                "method": "POST",
+                "href": "http://localhost:3000/api/sauces"
+            },
+            "update": {
+                "method": "PUT",
+                "href": "http://localhost:3000/api/sauces/5f2ea4c756e1e0f4701fb238"
+            },
+            "delete": {
+                "method": "DELETE",
+                "href": "http://localhost:3000/api/sauces/5f2ea4c756e1e0f4701fb238"
+            },
+            "like": {
+                "method": "POST",
+                "href": "http://localhost:3000/api/sauces/5f2ea4c756e1e0f4701fb238/like"
+            },
+            "list": {
+                "method": "GET",
+                "href": "http://localhost:3000/api/sauces"
+            }
+        }
     }
 ]
  *
@@ -247,8 +300,11 @@ exports.delete = (req, res, next) => {
  *HTTP1.1/  400 Unauthorized
  *
  **/
+
 exports.readAll = (req, res, next) => {
 	Sauces.find()
-		.then(sauces => res.status(200).json(sauces))
+		.then((sauces) => {
+			hateoas(req, res, sauces, 'api/sauces')
+		})
 		.catch(error => res.status(400).json({error}));
 }
