@@ -1,6 +1,6 @@
 const Sauces = require('../models/Sauces');
 const fs = require('fs');
-const hateoas = require('../middleware/hateoas')
+const hateoas = require('../services/hateoas')
 'use strict';
 
 /**
